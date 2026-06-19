@@ -4,6 +4,8 @@ A vanilla HTML/CSS/JS web app for tracking student expenses. Built for the ALU F
 
 **Live site:** [https://vchina-star.github.io/summative_responsive_ui/](https://vchina-star.github.io/summative_responsive_ui/)
 
+**Demo Video:** [https://youtu.be/z_hOg4BQT7o](https://youtu.be/z_hOg4BQT7o)
+
 ## Chosen Theme
 
 Student Finance Tracker — track budgets, transactions, and search spending history.
