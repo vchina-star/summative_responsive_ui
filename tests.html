@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Validator Tests</title>
+  <style>
+    body { font-family: monospace; padding: 1rem; line-height: 1.8; }
+    .pass { color: green; }
+    .fail { color: red; font-weight: bold; }
+    h2 { margin-top: 1.5rem; }
+  </style>
+</head>
+<body>
+  <h1>Regex Validation Tests</h1>
+  <div id="results"></div>
+  <script type="module">
+    import { validateDescription, validateAmount, validateDate, validateCategory, patterns } from './scripts/validators.js';
+    import { compileRegex } from './scripts/search.js';
+
+    const results = document.getElementById('results');
+    let passed = 0;
+    let failed = 0;
+
+    function assert(label, condition) {
+      if (condition) {
+        passed++;
+        results.innerHTML += `<p class="pass">PASS: ${label}</p>`;
+      } else {
+        failed++;
+        results.innerHTML += `<p class="fail">FAIL: ${label}</p>`;
+      }
+    }
+
+    function section(title) {
+      results.innerHTML += `<h2>${title}</h2>`;
+    }
+
+    // Description validation
+    section('Description');
+    assert('valid description', validateDescription('Lunch at cafeteria') === '');
+    assert('single word is valid', validateDescription('Coffee') === '');
+    assert('empty string rejected', validateDescription('') !== '');
+    assert('leading space rejected', validateDescription(' Lunch') !== '');
+    assert('trailing space rejected', validateDescription('Lunch ') !== '');
+    assert('double spaces rejected', validateDescription('Lunch  at') !== '');
+    assert('duplicate words caught', validateDescription('the the lunch') !== '');
+    assert('non-duplicate similar words pass', validateDescription('the theater') === '');
+
+    // Amount validation
+    section('Amount');
+    assert('integer valid', validateAmount('100') === '');
+    assert('decimal valid', validateAmount('12.50') === '');
+    assert('zero valid', validateAmount('0') === '');
+    assert('zero with decimals valid', validateAmount('0.99') === '');
+    assert('empty rejected', validateAmount('') !== '');
+    assert('letters rejected', validateAmount('abc') !== '');
+    assert('leading zero rejected', validateAmount('01') !== '');
+    assert('three decimal places rejected', validateAmount('12.500') !== '');
+    assert('negative rejected', validateAmount('-5') !== '');
+
+    // Date validation
+    section('Date');
+    assert('valid date', validateDate('2025-09-25') === '');
+    assert('Jan 1 valid', validateDate('2025-01-01') === '');
+    assert('Dec 31 valid', validateDate('2025-12-31') === '');
+    assert('empty rejected', validateDate('') !== '');
+    assert('wrong format rejected', validateDate('25-09-2025') !== '');
+    assert('month 13 rejected', validateDate('2025-13-01') !== '');
+    assert('day 32 rejected', validateDate('2025-01-32') !== '');
+    assert('no separators rejected', validateDate('20250925') !== '');
+
+    // Category validation
+    section('Category');
+    assert('single word valid', validateCategory('Food') === '');
+    assert('two words valid', validateCategory('Fast Food') === '');
+    assert('hyphenated valid', validateCategory('Self-care') === '');
+    assert('empty rejected', validateCategory('') !== '');
+    assert('numbers rejected', validateCategory('Food2') !== '');
+    assert('special chars rejected', validateCategory('Food!') !== '');
+    assert('leading space rejected', validateCategory(' Food') !== '');
+
+    // Advanced: duplicate word regex
+    section('Advanced — Duplicate Words');
+    assert('catches "the the"', patterns.duplicateWords.test('the the'));
+    assert('catches "very very good"', patterns.duplicateWords.test('very very good'));
+    assert('no match on normal text', !patterns.duplicateWords.test('the quick brown fox'));
+
+    // Search: compileRegex
+    section('Search — compileRegex');
+    assert('valid regex compiles', compileRegex('\\d+') !== null);
+    assert('empty input returns null', compileRegex('') === null);
+    assert('invalid regex returns null', compileRegex('[invalid') === null);
+    assert('case flag applied', compileRegex('food', 'i').flags.includes('i'));
+
+    // Summary
+    results.innerHTML += `<h2>Summary: ${passed} passed, ${failed} failed</h2>`;
+  </script>
+</body>
+</html>
