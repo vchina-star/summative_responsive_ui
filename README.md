@@ -2,7 +2,7 @@
 
 A vanilla HTML/CSS/JS web app for tracking student expenses. Built for the ALU Front-End Summative Assignment.
 
-**Live site:** [GitHub Pages URL here]
+**Live site:** [https://vchina-star.github.io/summative_responsive_ui/](https://vchina-star.github.io/summative_responsive_ui/)
 
 ## Chosen Theme
 
