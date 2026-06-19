@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — Student Finance Tracker</title>
+  <link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <header class="app-header">
+    <h1>Student Finance Tracker</h1>
+    <button id="menu-toggle" class="menu-toggle" aria-expanded="false" aria-controls="main-nav" aria-label="Toggle navigation">
+      <span class="hamburger"></span>
+    </button>
+    <nav id="main-nav" class="main-nav" aria-label="Main navigation">
+      <ul>
+        <li><a href="../index.html" class="nav-link">About</a></li>
+        <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+        <li><a href="records.html" class="nav-link">Records</a></li>
+        <li><a href="add-edit.html" class="nav-link">Add Record</a></li>
+        <li><a href="settings.html" class="nav-link active">Settings</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div id="status-message" role="status" aria-live="polite" class="sr-only"></div>
+  <div id="alert-message" role="alert" aria-live="assertive" class="sr-only"></div>
+
+  <div class="page-wrapper">
+    <nav class="sidebar-nav" aria-label="Main navigation">
+      <ul>
+        <li><a href="../index.html" class="nav-link">About</a></li>
+        <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+        <li><a href="records.html" class="nav-link">Records</a></li>
+        <li><a href="add-edit.html" class="nav-link">Add Record</a></li>
+        <li><a href="settings.html" class="nav-link active">Settings</a></li>
+      </ul>
+    </nav>
+
+    <main id="main-content">
+    <section id="settings" aria-labelledby="settings-heading">
+      <h2 id="settings-heading">Settings</h2>
+
+      <div class="settings-group">
+        <h3>Currency</h3>
+        <div class="form-group">
+          <label for="base-currency">Display currency:</label>
+          <select id="base-currency">
+            <option value="RWF">RWF — Rwandan Franc</option>
+            <option value="USD">USD — US Dollar</option>
+            <option value="UGX">UGX — Ugandan Shilling</option>
+          </select>
+        </div>
+
+        <h4>Exchange Rates (relative to RWF)</h4>
+        <div class="rates-grid">
+          <div class="form-group">
+            <label for="rate-usd">1 USD =</label>
+            <input type="text" id="rate-usd" inputmode="decimal" value="1300">
+            <span>RWF</span>
+          </div>
+          <div class="form-group">
+            <label for="rate-ugx">1 UGX =</label>
+            <input type="text" id="rate-ugx" inputmode="decimal" value="0.35">
+            <span>RWF</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <h3>Categories</h3>
+        <ul id="category-list" class="category-list"></ul>
+        <div class="category-add">
+          <label for="new-category-input">New category:</label>
+          <input type="text" id="new-category-input" placeholder="e.g. Groceries">
+          <button type="button" id="add-category-btn">Add</button>
+        </div>
+        <p id="error-new-category" class="field-error" aria-live="polite"></p>
+      </div>
+
+      <div class="settings-group">
+        <h3>Data Management</h3>
+        <div class="data-actions">
+          <button type="button" id="export-btn">Export JSON</button>
+          <label for="import-file" class="btn-label">Import JSON</label>
+          <input type="file" id="import-file" accept=".json" class="sr-only">
+        </div>
+        <p id="import-status" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+    </main>
+  </div>
+
+  <script type="module" src="../scripts/ui.js"></script>
+</body>
+</html>

@@ -2,7 +2,7 @@ import { loadRecords, saveRecords, loadSettings, saveSettings } from './storage.
 
 const DEFAULT_SETTINGS = {
   currency: 'RWF',
-  rates: { USD: 1300, EUR: 1400 },
+  rates: { USD: 1300, UGX: 0.35 },
   categories: ['Food', 'Books', 'Transport', 'Entertainment', 'Fees', 'Other'],
   budgetCap: null,
 };
@@ -108,9 +108,16 @@ export function convertAmount(amountInRWF, toCurrency) {
   return amountInRWF / rate;
 }
 
+export function toRWF(amount, fromCurrency) {
+  if (fromCurrency === 'RWF') return amount;
+  const rate = settings.rates[fromCurrency];
+  if (!rate || rate <= 0) return amount;
+  return amount * rate;
+}
+
 export function formatCurrency(amount) {
   const curr = settings.currency;
-  const symbols = { RWF: 'RWF ', USD: '$', EUR: '€' };
+  const symbols = { RWF: 'RWF ', USD: '$', UGX: 'UGX ' };
   const converted = convertAmount(amount, curr);
   const prefix = symbols[curr] || curr + ' ';
   return prefix + converted.toFixed(2);

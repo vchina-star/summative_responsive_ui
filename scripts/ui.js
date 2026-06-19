@@ -1,4 +1,4 @@
-import { init, getRecords, getSettings, addRecord, updateRecord, deleteRecord, replaceAllRecords, updateSettings, formatCurrency } from './state.js';
+import { init, getRecords, getSettings, addRecord, updateRecord, deleteRecord, replaceAllRecords, updateSettings, formatCurrency, toRWF, convertAmount } from './state.js';
 import { exportJSON, importJSON } from './storage.js';
 import { validateForm, validateCategory } from './validators.js';
 import { compileRegex, highlight, filterRecords, sortRecords } from './search.js';
@@ -11,45 +11,45 @@ let currentSort = 'date-desc';
 
 function announce(msg, level = 'polite') {
   const el = level === 'assertive' ? $('#alert-message') : $('#status-message');
+  if (!el) return;
   el.textContent = '';
   requestAnimationFrame(() => { el.textContent = msg; });
 }
 
-function showPage(id) {
-  $$('.page').forEach(p => {
-    p.hidden = p.id !== id;
-    p.classList.toggle('active', p.id === id);
-  });
-  $$('.nav-link').forEach(l => {
-    l.classList.toggle('active', l.dataset.section === id);
-  });
-
-  if (id === 'records') renderRecords();
-
-  const nav = $('#main-nav');
-  const toggle = $('#menu-toggle');
-  nav.classList.remove('open');
-  toggle.setAttribute('aria-expanded', 'false');
-}
-
 function initNav() {
-  $$('.nav-link').forEach(link => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      showPage(link.dataset.section);
-    });
-  });
-
-  $('#menu-toggle').addEventListener('click', () => {
+  const toggle = $('#menu-toggle');
+  if (!toggle) return;
+  toggle.addEventListener('click', () => {
     const nav = $('#main-nav');
     const expanded = nav.classList.toggle('open');
-    $('#menu-toggle').setAttribute('aria-expanded', String(expanded));
+    toggle.setAttribute('aria-expanded', String(expanded));
   });
 }
 
 function initForm() {
   const form = $('#transaction-form');
+  if (!form) return;
+
   const editIdField = $('#edit-id');
+
+  // refill form from id when editing
+  const params = new URLSearchParams(window.location.search);
+  const editId = params.get('edit');
+  if (editId) {
+    const record = getRecords().find(r => r.id === editId);
+    if (record) {
+      $('#input-description').value = record.description;
+      $('#input-amount').value = record.amount;
+      $('#input-category').value = record.category;
+      $('#input-date').value = record.date;
+      editIdField.value = record.id;
+      $('#form-submit-btn').textContent = 'Update Transaction';
+      $('#form-cancel-btn').hidden = false;
+      $('#add-edit-heading').textContent = 'Edit Record';
+    }
+  }
+
+  syncCategoryDropdown();
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -67,42 +67,42 @@ function initForm() {
       return;
     }
 
-    const editId = editIdField.value;
-    if (editId) {
-      updateRecord(editId, data);
+    if (editIdField.value) {
+      updateRecord(editIdField.value, data);
       announce('Transaction updated.');
     } else {
       addRecord(data);
       announce('Transaction added.');
     }
 
-    form.reset();
-    editIdField.value = '';
-    $('#form-submit-btn').textContent = 'Add Transaction';
-    $('#form-cancel-btn').hidden = true;
-    $('#add-edit-heading').textContent = 'Add Record';
-    clearFormErrors();
-    showPage('records');
+    window.location.href = 'records.html';
   });
 
   $('#form-cancel-btn').addEventListener('click', () => {
-    form.reset();
-    editIdField.value = '';
-    $('#form-submit-btn').textContent = 'Add Transaction';
-    $('#form-cancel-btn').hidden = true;
-    $('#add-edit-heading').textContent = 'Add Record';
-    clearFormErrors();
+    window.location.href = 'records.html';
   });
 }
 
 function showFormErrors(errors) {
   for (const [field, msg] of Object.entries(errors)) {
-    $(`#error-${field}`).textContent = msg;
+    const el = $(`#error-${field}`);
+    if (el) el.textContent = msg;
   }
 }
 
 function clearFormErrors() {
   $$('.field-error').forEach(el => { el.textContent = ''; });
+}
+
+function initRecords() {
+  if (!$('#records-body')) return;
+  renderRecords();
+  $('#search-input').addEventListener('input', renderRecords);
+  $('#search-case-toggle').addEventListener('change', renderRecords);
+  $('#sort-select').addEventListener('change', (e) => {
+    currentSort = e.target.value;
+    renderRecords();
+  });
 }
 
 function renderRecords() {
@@ -136,7 +136,6 @@ function renderTable(records) {
     return;
   }
 
-  // rebuild regex for highlighting with global flag
   const hlRe = currentSearch;
 
   tbody.innerHTML = records.map(r => `
@@ -153,7 +152,9 @@ function renderTable(records) {
   `).join('');
 
   tbody.querySelectorAll('.edit').forEach(btn => {
-    btn.addEventListener('click', () => startEdit(btn.dataset.id));
+    btn.addEventListener('click', () => {
+      window.location.href = `add-edit.html?edit=${btn.dataset.id}`;
+    });
   });
   tbody.querySelectorAll('.delete').forEach(btn => {
     btn.addEventListener('click', () => confirmDelete(btn.dataset.id));
@@ -162,6 +163,7 @@ function renderTable(records) {
 
 function renderCards(records) {
   const container = $('#records-cards');
+  if (!container) return;
   if (records.length === 0) {
     container.innerHTML = '<p class="empty-row">No records found.</p>';
     return;
@@ -186,7 +188,9 @@ function renderCards(records) {
   `).join('');
 
   container.querySelectorAll('.edit').forEach(btn => {
-    btn.addEventListener('click', () => startEdit(btn.dataset.id));
+    btn.addEventListener('click', () => {
+      window.location.href = `add-edit.html?edit=${btn.dataset.id}`;
+    });
   });
   container.querySelectorAll('.delete').forEach(btn => {
     btn.addEventListener('click', () => confirmDelete(btn.dataset.id));
@@ -199,21 +203,6 @@ function escapeHTML(str) {
   return div.innerHTML;
 }
 
-function startEdit(id) {
-  const record = getRecords().find(r => r.id === id);
-  if (!record) return;
-
-  $('#input-description').value = record.description;
-  $('#input-amount').value = record.amount;
-  $('#input-category').value = record.category;
-  $('#input-date').value = record.date;
-  $('#edit-id').value = record.id;
-  $('#form-submit-btn').textContent = 'Update Transaction';
-  $('#form-cancel-btn').hidden = false;
-  $('#add-edit-heading').textContent = 'Edit Record';
-  showPage('add-edit');
-}
-
 function confirmDelete(id) {
   const record = getRecords().find(r => r.id === id);
   if (!record) return;
@@ -223,26 +212,123 @@ function confirmDelete(id) {
   renderRecords();
 }
 
-function initSearch() {
-  $('#search-input').addEventListener('input', renderRecords);
-  $('#search-case-toggle').addEventListener('change', renderRecords);
+function initDashboard() {
+  if (!$('#stat-total-count')) return;
+  renderDashboard();
+  initBudget();
 }
 
-function initSort() {
-  $('#sort-select').addEventListener('change', (e) => {
-    currentSort = e.target.value;
-    renderRecords();
+function renderDashboard() {
+  const records = getRecords();
+  const settings = getSettings();
+
+  $('#stat-total-count').textContent = records.length;
+
+  const totalAmount = records.reduce((sum, r) => sum + r.amount, 0);
+  $('#stat-total-amount').textContent = formatCurrency(totalAmount);
+
+  if (records.length > 0) {
+    const catTotals = {};
+    records.forEach(r => {
+      catTotals[r.category] = (catTotals[r.category] || 0) + r.amount;
+    });
+    const topCat = Object.entries(catTotals).sort((a, b) => b[1] - a[1])[0];
+    $('#stat-top-category').textContent = topCat[0];
+  } else {
+    $('#stat-top-category').textContent = '—';
+  }
+
+  renderBudgetStatus(totalAmount, settings);
+  renderTrendChart(records);
+}
+
+function renderBudgetStatus(totalSpent, settings) {
+  const cap = settings.budgetCap;
+  const statusEl = $('#budget-status');
+  const msgEl = $('#budget-remaining');
+
+  if (cap === null || cap === undefined) {
+    statusEl.setAttribute('aria-live', 'polite');
+    msgEl.textContent = 'Set a budget to track spending.';
+    return;
+  }
+
+  const remaining = cap - totalSpent;
+
+  if (remaining >= 0) {
+    statusEl.setAttribute('aria-live', 'polite');
+    msgEl.textContent = `${formatCurrency(remaining)} remaining of ${formatCurrency(cap)} budget.`;
+  } else {
+    statusEl.setAttribute('aria-live', 'assertive');
+    msgEl.textContent = `Over budget by ${formatCurrency(Math.abs(remaining))}! Budget was ${formatCurrency(cap)}.`;
+  }
+}
+
+function initBudget() {
+  const settings = getSettings();
+  if (settings.budgetCap !== null) {
+    // display cap converted to the active currency
+    $('#budget-cap-input').value = convertAmount(settings.budgetCap, settings.currency).toFixed(2);
+  }
+
+  $('#set-budget-btn').addEventListener('click', () => {
+    const raw = $('#budget-cap-input').value.trim();
+    if (raw === '' || parseFloat(raw) === 0) {
+      updateSettings({ budgetCap: null });
+      $('#budget-cap-input').value = '';
+      announce('Budget cleared.');
+      renderDashboard();
+      return;
+    }
+    const val = parseFloat(raw);
+    if (isNaN(val) || val < 0) {
+      announce('Enter a valid budget amount.', 'assertive');
+      return;
+    }
+    // store active currency as RWF
+    const inRWF = toRWF(val, getSettings().currency);
+    updateSettings({ budgetCap: inRWF });
+    announce(`Budget set to ${formatCurrency(inRWF)}.`);
+    renderDashboard();
   });
 }
 
-function initSettings() {
-  const settings = getSettings();
+function renderTrendChart(records) {
+  const chart = $('#trend-chart');
+  if (!chart) return;
+  const today = new Date();
+  const days = [];
 
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    const total = records
+      .filter(r => r.date === dateStr)
+      .reduce((sum, r) => sum + r.amount, 0);
+    days.push({ label: dateStr.slice(5), total });
+  }
+
+  const max = Math.max(...days.map(d => d.total), 1);
+
+  chart.innerHTML = days.map(d => {
+    const pct = (d.total / max) * 100;
+    return `<div class="bar-group">
+      <div class="bar" style="height:${pct}%" title="${d.label}: ${formatCurrency(d.total)}"></div>
+      <span class="bar-label">${d.label}</span>
+    </div>`;
+  }).join('');
+}
+
+function initSettings() {
+  if (!$('#base-currency')) return;
+
+  const settings = getSettings();
   renderCategoryList();
 
   $('#base-currency').value = settings.currency;
   $('#rate-usd').value = settings.rates.USD;
-  $('#rate-eur').value = settings.rates.EUR;
+  $('#rate-ugx').value = settings.rates.UGX;
 
   $('#base-currency').addEventListener('change', (e) => {
     updateSettings({ currency: e.target.value });
@@ -257,10 +343,10 @@ function initSettings() {
     }
   });
 
-  $('#rate-eur').addEventListener('change', (e) => {
+  $('#rate-ugx').addEventListener('change', (e) => {
     const val = parseFloat(e.target.value);
     if (val > 0) {
-      const rates = { ...getSettings().rates, EUR: val };
+      const rates = { ...getSettings().rates, UGX: val };
       updateSettings({ rates });
     }
   });
@@ -283,7 +369,6 @@ function initSettings() {
     input.value = '';
     $('#error-new-category').textContent = '';
     renderCategoryList();
-    syncCategoryDropdown();
     announce(`Category "${value}" added.`);
   });
 
@@ -310,6 +395,7 @@ function initSettings() {
 
 function renderCategoryList() {
   const list = $('#category-list');
+  if (!list) return;
   const cats = getSettings().categories;
   list.innerHTML = cats.map(cat => `
     <li>
@@ -323,7 +409,6 @@ function renderCategoryList() {
       const updated = getSettings().categories.filter(c => c !== btn.dataset.cat);
       updateSettings({ categories: updated });
       renderCategoryList();
-      syncCategoryDropdown();
       announce(`Category "${btn.dataset.cat}" removed.`);
     });
   });
@@ -331,6 +416,7 @@ function renderCategoryList() {
 
 function syncCategoryDropdown() {
   const select = $('#input-category');
+  if (!select) return;
   const current = select.value;
   const cats = getSettings().categories;
   select.innerHTML = '<option value="">Select a category</option>' +
@@ -342,8 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
   init();
   initNav();
   initForm();
-  initSearch();
-  initSort();
+  initRecords();
+  initDashboard();
   initSettings();
-  syncCategoryDropdown();
 });

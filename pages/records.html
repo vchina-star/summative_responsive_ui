@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Records — Student Finance Tracker</title>
+  <link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <header class="app-header">
+    <h1>Student Finance Tracker</h1>
+    <button id="menu-toggle" class="menu-toggle" aria-expanded="false" aria-controls="main-nav" aria-label="Toggle navigation">
+      <span class="hamburger"></span>
+    </button>
+    <nav id="main-nav" class="main-nav" aria-label="Main navigation">
+      <ul>
+        <li><a href="../index.html" class="nav-link">About</a></li>
+        <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+        <li><a href="records.html" class="nav-link active">Records</a></li>
+        <li><a href="add-edit.html" class="nav-link">Add Record</a></li>
+        <li><a href="settings.html" class="nav-link">Settings</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div id="status-message" role="status" aria-live="polite" class="sr-only"></div>
+  <div id="alert-message" role="alert" aria-live="assertive" class="sr-only"></div>
+
+  <div class="page-wrapper">
+    <nav class="sidebar-nav" aria-label="Main navigation">
+      <ul>
+        <li><a href="../index.html" class="nav-link">About</a></li>
+        <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+        <li><a href="records.html" class="nav-link active">Records</a></li>
+        <li><a href="add-edit.html" class="nav-link">Add Record</a></li>
+        <li><a href="settings.html" class="nav-link">Settings</a></li>
+      </ul>
+    </nav>
+
+    <main id="main-content">
+    <section id="records" aria-labelledby="records-heading">
+      <h2 id="records-heading">Records</h2>
+
+      <div class="records-toolbar">
+        <div class="search-group">
+          <label for="search-input">Search (regex):</label>
+          <input type="text" id="search-input" placeholder="e.g. /food/i or \.\d{2}">
+          <div class="search-options">
+            <label>
+              <input type="checkbox" id="search-case-toggle"> Case insensitive
+            </label>
+          </div>
+          <p id="search-error" class="field-error" role="alert" aria-live="assertive"></p>
+        </div>
+
+        <div class="sort-group">
+          <label for="sort-select">Sort by:</label>
+          <select id="sort-select">
+            <option value="date-desc">Date (newest)</option>
+            <option value="date-asc">Date (oldest)</option>
+            <option value="description-asc">Description (A→Z)</option>
+            <option value="description-desc">Description (Z→A)</option>
+            <option value="amount-asc">Amount (low→high)</option>
+            <option value="amount-desc">Amount (high→low)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table id="records-table" aria-label="Transaction records">
+          <thead>
+            <tr>
+              <th scope="col">Date</th>
+              <th scope="col">Description</th>
+              <th scope="col">Amount</th>
+              <th scope="col">Category</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="records-body">
+            <tr class="empty-row">
+              <td colspan="5">No records yet. Add your first transaction!</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="records-cards" class="records-cards" aria-label="Transaction records"></div>
+    </section>
+    </main>
+  </div>
+
+  <script type="module" src="../scripts/ui.js"></script>
+</body>
+</html>

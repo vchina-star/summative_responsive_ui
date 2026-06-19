@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Student Finance Tracker</title>
+  <link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <header class="app-header">
+    <h1>Student Finance Tracker</h1>
+    <button id="menu-toggle" class="menu-toggle" aria-expanded="false" aria-controls="main-nav" aria-label="Toggle navigation">
+      <span class="hamburger"></span>
+    </button>
+    <nav id="main-nav" class="main-nav" aria-label="Main navigation">
+      <ul>
+        <li><a href="../index.html" class="nav-link">About</a></li>
+        <li><a href="dashboard.html" class="nav-link active">Dashboard</a></li>
+        <li><a href="records.html" class="nav-link">Records</a></li>
+        <li><a href="add-edit.html" class="nav-link">Add Record</a></li>
+        <li><a href="settings.html" class="nav-link">Settings</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div id="status-message" role="status" aria-live="polite" class="sr-only"></div>
+  <div id="alert-message" role="alert" aria-live="assertive" class="sr-only"></div>
+
+  <div class="page-wrapper">
+    <nav class="sidebar-nav" aria-label="Main navigation">
+      <ul>
+        <li><a href="../index.html" class="nav-link">About</a></li>
+        <li><a href="dashboard.html" class="nav-link active">Dashboard</a></li>
+        <li><a href="records.html" class="nav-link">Records</a></li>
+        <li><a href="add-edit.html" class="nav-link">Add Record</a></li>
+        <li><a href="settings.html" class="nav-link">Settings</a></li>
+      </ul>
+    </nav>
+
+    <main id="main-content">
+    <section id="dashboard" aria-labelledby="dashboard-heading">
+      <h2 id="dashboard-heading">Dashboard</h2>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Total Transactions</h3>
+          <p id="stat-total-count" class="stat-value">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>Total Spent</h3>
+          <p id="stat-total-amount" class="stat-value">0.00</p>
+        </div>
+        <div class="stat-card">
+          <h3>Top Category</h3>
+          <p id="stat-top-category" class="stat-value">—</p>
+        </div>
+      </div>
+
+      <div class="budget-section">
+        <h3>Budget Cap</h3>
+        <div class="budget-controls">
+          <label for="budget-cap-input">Monthly budget:</label>
+          <input type="text" id="budget-cap-input" inputmode="decimal" placeholder="e.g. 500.00">
+          <button id="set-budget-btn" type="button">Set</button>
+        </div>
+        <div id="budget-status" aria-live="polite">
+          <p id="budget-remaining">Set a budget to track spending.</p>
+        </div>
+      </div>
+
+      <div class="chart-section">
+        <h3>Last 7 Days</h3>
+        <div id="trend-chart" class="trend-chart" role="img" aria-label="Spending trend for the last 7 days"></div>
+      </div>
+    </section>
+    </main>
+  </div>
+
+  <script type="module" src="../scripts/ui.js"></script>
+</body>
+</html>
